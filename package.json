@@ -1,0 +1,24 @@
+{
+  "name": "adjustments-files-script",
+  "version": "1.0.0",
+  "description": "download files from adjust sheets",
+  "main": "index.js",
+  "scripts": {
+    "start:download": "ts-node ./src/downloadFiles.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pos",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/google-spreadsheet": "^3.3.1",
+    "@types/node": "^20.14.2",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "fs": "^0.0.1-security",
+    "google-spreadsheet": "^3.3.0"
+  }
+}
