@@ -1,56 +1,44 @@
 import { getRows, initializeSheet } from "../client/spreadsheets";
-import * as fs from "fs";
-import * as https from "https";
 import * as path from "path";
-import { TFileData } from "../../types";
-import axios from "axios";
+import fs from "fs-extra";
+import { downloadPdf, getGoogleDriveDownloadLink } from "../client/downloadPdf";
 
 export const downloadFilesByModules = async () => {
   try {
     await initializeSheet(process.env.ADJUSTMENTS_SPREADSHEET_ID as string);
-
-    const rows = await getRows<any>({ sheetTitle: "Files" });
-
-    const data: TFileData[] = [];
-    rows.forEach((row) => {
-      const idModulo = row.idModulo;
-      const nomeArquivo = row.nomeArquivo;
-      const linkArquivo = row.linkArquivo;
-
-      let infos = {
-        idModulo,
-        nomeArquivo,
-        linkArquivo,
-      };
-      data.push(infos);
-
-      const savePath = path.join(
-        __dirname,
-        `../files/${infos.nomeArquivo}.pdf`
-      );
-      const downloadFilesBysheets = async (url: string, outputPath: string) => {
-        const response = await axios({
-          url,
-          method: "GET",
-          responseType: "stream",
-        });
-
-        const writer = fs.createWriteStream(outputPath);
-
-        response.data.pipe(writer);
-
-        return new Promise((resolve, reject) => {
-          writer.on("finish", resolve);
-          writer.on("error", reject);
-        });
-      };
-
-      downloadFilesBysheets(infos.linkArquivo, savePath).then(() => {
-        console.log("Arquivo baixado e salvo com sucesso!");
-      });
-    });
-    console.log("data aqui: ", data);
   } catch (error) {
-    console.log("error: ", error);
+    console.log("erro ao ler a planilha", error);
   }
+
+  const rows = await getRows<any>({ sheetTitle: "(novo) pós graduação" });
+
+  const totalFiles = rows.length;
+  let downloadedFiles = 0;
+
+  for (const row of rows) {
+    const linkArquivo = row.linkArquivo;
+    const idModulo = row.idModulo;
+    const nomeArquivo = row.nomeArquivo;
+
+    downloadedFiles++;
+    const percentComplete = ((downloadedFiles / totalFiles) * 100).toFixed(2);
+    process.stdout.write(
+      `Baixando arquivo ${downloadedFiles} de ${totalFiles} (${percentComplete}%)\r`
+    );
+
+    if (linkArquivo && idModulo && nomeArquivo) {
+      const folderPath = path.join(
+        __dirname,
+        `../files/${idModulo.toString()}`
+      );
+      const filePath = path.join(folderPath, `${nomeArquivo}.pdf`);
+
+      await fs.ensureDir(folderPath);
+      const downloadLink = getGoogleDriveDownloadLink(linkArquivo);
+      await downloadPdf(downloadLink, filePath);
+      console.log(`Arquivo salvo em: ${folderPath}`);
+    }
+  }
+
+  console.log("\nTodos os arquivos foram baixados.");
 };
