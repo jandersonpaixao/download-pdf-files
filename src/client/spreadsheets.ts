@@ -3,23 +3,40 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: `.env` });
 
-let doc: any;
-export const initializeSheet = async (sheetId: string) => {
-  try {
-    doc = new GoogleSpreadsheet(sheetId);
-    await doc.useServiceAccountAuth({
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY,
-    });
-  } catch (error) {
-    console.log("erro ao inicializar a planilha", error);
+export class SpreadsheetService {
+  private doc: GoogleSpreadsheet;
+
+  constructor(sheetId: string) {
+    this.doc = new GoogleSpreadsheet(sheetId);
   }
-};
-export const getRows = async <T>({ sheetTitle }: { sheetTitle: string }) => {
-  await doc.loadInfo();
 
-  const sheet = doc.sheetsByTitle[sheetTitle];
-  const rows = await sheet.getRows();
+  async initialize() {
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-  return rows as unknown as T[];
-};
+    if (!clientEmail || !privateKey) {
+      throw new Error("Preencher as envs corretamente");
+    }
+
+    try {
+      await this.doc.useServiceAccountAuth({
+        client_email: clientEmail,
+        private_key: privateKey,
+      });
+      await this.doc.loadInfo();
+    } catch (error) {
+      console.log("Erro ao inicializar a planilha", error);
+    }
+  }
+
+  async getRows<T>(sheetTitle: string): Promise<T[]> {
+    try {
+      const sheet = this.doc.sheetsByTitle[sheetTitle];
+      const rows = await sheet.getRows();
+      return rows as unknown as T[];
+    } catch (error) {
+      console.log("Erro ao obter linhas da planilha", error);
+      throw error;
+    }
+  }
+}

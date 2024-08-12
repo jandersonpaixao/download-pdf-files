@@ -7,4 +7,6 @@ const run = async () => {
   await downloadFilesByModules();
 };
 
-run();
+run().catch((error) => {
+  console.error("Erro ao executar o script", error);
+});

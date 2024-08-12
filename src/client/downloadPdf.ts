@@ -2,10 +2,7 @@ import axios from "axios";
 import fs from "fs-extra";
 
 export const getGoogleDriveDownloadLink = (link: string): string => {
-  let fileIdMatch = link.match(/\/d\/(.+?)\//);
-  if (!fileIdMatch) {
-    fileIdMatch = link.match(/id=([^&]+)/);
-  }
+  const fileIdMatch = link.match(/\/d\/(.+?)\//) || link.match(/id=([^&]+)/);
   if (fileIdMatch && fileIdMatch[1]) {
     return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
   }

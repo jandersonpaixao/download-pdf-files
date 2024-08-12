@@ -1,25 +1,33 @@
-import { getRows, initializeSheet } from "../client/spreadsheets";
 import * as path from "path";
 import fs from "fs-extra";
 import { downloadPdf, getGoogleDriveDownloadLink } from "../client/downloadPdf";
+import { SpreadsheetService } from "../client/spreadsheets";
 
 export const downloadFilesByModules = async () => {
+  const spreadsheetService = new SpreadsheetService(
+    process.env.ADJUSTMENTS_SPREADSHEET_ID as string
+  );
+
   try {
-    await initializeSheet(process.env.ADJUSTMENTS_SPREADSHEET_ID as string);
+    await spreadsheetService.initialize();
   } catch (error) {
-    console.log("erro ao ler a planilha", error);
+    console.log("Erro ao inicializar a planilha", error);
+    return;
   }
 
-  const rows = await getRows<any>({ sheetTitle: "(novo) pós graduação" });
+  let rows: any[] = [];
+  try {
+    rows = await spreadsheetService.getRows<any>("(novo) pós graduação");
+  } catch (error) {
+    console.log("Erro ao ler a planilha", error);
+    return;
+  }
 
   const totalFiles = rows.length;
   let downloadedFiles = 0;
 
   for (const row of rows) {
-    const linkArquivo = row.linkArquivo;
-    const idModulo = row.idModulo;
-    const nomeArquivo = row.nomeArquivo;
-
+    const { linkArquivo, idModulo, nomeArquivo } = row;
     downloadedFiles++;
     const percentComplete = ((downloadedFiles / totalFiles) * 100).toFixed(2);
     process.stdout.write(
@@ -40,5 +48,5 @@ export const downloadFilesByModules = async () => {
     }
   }
 
-  console.log("\nTodos os arquivos foram baixados.");
+  console.log(`\nTodos os ${downloadedFiles} arquivos foram baixados.`);
 };
