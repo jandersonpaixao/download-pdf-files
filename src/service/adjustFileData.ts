@@ -27,7 +27,7 @@ export const downloadFilesByModules = async () => {
   let downloadedFiles = 0;
 
   for (const row of rows) {
-    const { linkArquivo, idModulo, nomeArquivo } = row;
+    const { linkArquivo, idModulo, nomeArquivo, tipoArquivo } = row;
     downloadedFiles++;
     const percentComplete = ((downloadedFiles / totalFiles) * 100).toFixed(2);
     process.stdout.write(
@@ -39,7 +39,7 @@ export const downloadFilesByModules = async () => {
         __dirname,
         `../files/${idModulo.toString()}`
       );
-      const filePath = path.join(folderPath, `${nomeArquivo}.pdf`);
+      const filePath = path.join(folderPath, `${nomeArquivo}.${tipoArquivo}`);
 
       await fs.ensureDir(folderPath);
       const downloadLink = getGoogleDriveDownloadLink(linkArquivo);
