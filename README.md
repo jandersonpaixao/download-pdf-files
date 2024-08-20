@@ -20,6 +20,11 @@ $ npm install
 
 ## Gerar arquivos
 
+para que a leitura da planilha ocorra perfeitamente, as colunas linkArquivo, idModulo, nomeArquivo e tipoArquivo devem estar preenchidas corretamente!
+
+- a coluna linkArquivo deve conter uma URL válida de arquivo drive para fazer o download;
+- a coluna idModulo é utilizada para fazer a separação de arquivos que pertecem a escopos diferentes
+
 ```shell
 $ npm run start:download
 ```
